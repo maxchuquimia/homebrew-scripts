@@ -1,0 +1,23 @@
+#!/bin/bash
+
+did_open=0
+
+# git outputs the stuff we're interested in to stderr, 
+# so we should force it to write to stdout
+git push "$@" 2>&1 | while read line
+do
+    # Ensure output from git is printed
+    echo "$line"
+
+    URL=$(echo "$line" | egrep -o 'https?://[^ ]+')
+    if [[ $URL = *[!\ ]* ]]; then
+        
+        # Only open the first URL we detect
+        if [ "$did_open" -eq "0" ]
+        then
+            open "$URL"
+            did_open=1
+        fi
+    fi
+done
+
