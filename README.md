@@ -15,3 +15,12 @@ $ git pr
 Note: `stderr` gets mapped to `stdout`
 
 
+## checkout
+
+Presents a list of local git branches. Typing the number of the branch immediately switches to it, no need to press enter.
+
+```sh
+$ checkout
+```
+
+Note: only works if you have less than 10 local branches
