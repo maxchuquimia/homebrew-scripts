@@ -1,0 +1,36 @@
+#!/bin/bash
+
+TARGET="$1"
+SLEEP_MINS="$2"
+
+set -e
+
+if [ -z "$TARGET" ]
+then
+    >&2 echo "Missing target search"
+    exit 1
+fi
+
+if [ -z "$SLEEP_MINS" ]
+then
+    SLEEP_MINS=0
+fi
+
+
+PNAME=$(ps -A | grep "$TARGET" | head -1)
+PID=$(echo "$PNAME" | sed 's/^\([0-9]*\) .*$/\1/g')
+
+echo "Found $PNAME"
+read -n 1 -s -r -p "Press any key to begin $SLEEP_MINS minute countdown"
+
+echo ""
+
+while [ $SLEEP_MINS -gt 0 ]
+do
+    echo -en " $SLEEP_MINS mins remaining         \r"
+    SLEEP_MINS=$[$SLEEP_MINS-1]
+    sleep 60
+done
+echo -en "\n\n"
+kill -9 "$PID"
+
