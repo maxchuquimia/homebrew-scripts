@@ -1,0 +1,12 @@
+#!/bin/bash
+
+XCWORKSPACE=$(find . -name *.xcworkspace)
+VERSION=$1
+
+if [ -d "$XCWORKSPACE" ]
+then
+    open -a "/Applications/Xcode${VERSION}.app" "$XCWORKSPACE"
+else
+    open -a "/Applications/Xcode${VERSION}.app" "$(find . -name *.xcodeproj)"
+fi
+
