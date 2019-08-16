@@ -24,3 +24,13 @@ $ checkout
 ```
 
 Note: only works if you have less than 10 local branches
+
+## timeout
+
+Kills a process ID or process name after a given number of minutes
+
+```sh
+$ timeout <process> <minutes>
+```
+
+Note: `process` can be a PID or a name - `ps -A` is grepped for a match
