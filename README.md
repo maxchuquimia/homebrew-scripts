@@ -34,3 +34,18 @@ $ timeout <process> <minutes>
 ```
 
 Note: `process` can be a PID or a name - `ps -A` is grepped for a match
+
+## xcode
+Opens the `.xcodeproj` or `.xcworkspace` in the current working directory. Optionally specify an Xcode version
+
+```sh
+$ xcode
+```
+
+or
+
+```sh
+$ xcode 10.2.1
+```
+
+Note: `Xcode.app` should exist in `/Applications` already. If you are optionally specifying a version, that version should exist too (e.g. `Xcode10.2.1.app`)
