@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Check dependencies
+if ! type "cfgutil" > /dev/null; then
+    >&2 echo "cfgutil not installed!"
+    >&2 echo "Install it by opening 'Apple Configurator 2' then choosing 'Install Automation Tools' from the main status bar menu under the app's name."
+    exit 3
+fi
+
+set -e
+
+SCRIPT="/tmp/ipa-installer-helper"
+SILENCE=" > /dev/null"
+
+function show_help() {
+    echo "Usage: $(basename "$0") ./my-app.ipa ./optional-second-app.ipa ..."
+    echo "Optional flags:"
+    echo -en "--deleting:\tBinaries listed after this flag will be removed from the device before they are installed.\n"
+}
+
+trap kill_handler SIGINT
+
+function kill_handler() {
+    rm "$SCRIPT"
+    exit 0 # Successfully cleaned up
+}
+
+# Finds the absolute path of a file - https://stackoverflow.com/a/3572105/1153630
+function realpath() { 
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+# Appends $1 to the script
+function script() {
+    echo "$1" >> "$SCRIPT"
+}
+
+# Ensure there are some arguments
+if [ "$#" -lt 1 ]; then
+    >&2 echo "No arguments"
+    show_help
+    exit 1
+fi
+
+# Start the script
+echo "#!/bin/bash" > "$SCRIPT"
+script ""
+
+SHOULD_DELETE=0
+
+for arg in "$@"
+do
+    # If this is the --deleting flag, ensure all proceeding IPAs are deleted before being installed
+    if [ "$arg" == "--deleting" ]; then
+        SHOULD_DELETE=1
+        continue
+    fi
+
+    # The absolute path to the IPA
+    IPA=$(realpath "$arg")
+
+    # Ensure the file exists
+    if [ ! -f "$IPA" ]; then
+        >&2 echo "$IPA is not an ipa file"
+        show_help
+        exit 2
+    fi
+
+    IPA_NAME=$(basename "$IPA")
+
+    # Logic for when we need to delete the previous IPA before installing
+    if [ "$SHOULD_DELETE" -eq "1" ]; then
+        echo "$IPA_NAME is marked for deletion"
+
+        # Actually, we need the bundle ID to do this.
+        # Try to find the Info.plist of the app. This may not work for customized plist paths and names!
+        INFO_PLIST=$(zipinfo -1 "$IPA" | grep "Payload/.*\.app/Info.plist$")
+        echo "Assuming $IPA_NAME's Info.plist is $INFO_PLIST"
+        BUNDLE_ID=$(unzip -p "$IPA" "$INFO_PLIST" | grep -A 1 '<key>CFBundleIdentifier' | sed -n 's/^.*<string>\(.*\)<\/string>.*$/\1/p')
+        echo -en "\t$IPA_NAME -> $BUNDLE_ID\n\n"
+
+        # The actual code to delete the IPA
+        script "echo \"[\$deviceName] Removing $BUNDLE_ID'\""
+        script "cfgutil --ecid \$ECID remove-app $BUNDLE_ID $SILENCE || >&2 echo \"[$deviceName] error on app removal\""
+    fi
+
+    # Install the IPA
+    script "echo \"[\$deviceName] Installing $IPA_NAME\"" >> "$SCRIPT"
+    script "cfgutil --ecid \$ECID install-app $IPA $SILENCE || >&2 echo \"[$deviceName] error on app installation\""
+done
+
+script 'echo "[$deviceName] operation/s complete."'
+
+chmod +x "$SCRIPT"
+
+echo "Ready for device/s to be connected..."
+
+cfgutil exec -a "$SCRIPT" 2>/dev/null
+
