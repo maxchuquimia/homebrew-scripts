@@ -3,6 +3,17 @@ Just a collection of scripts I've made to make my life easier
 
 Install them with `brew install maxchuquimia/scripts/scriptname`
 
+## istation
+Given a list of IPA files, `istation` will wait for iOS devices to be plugged into the host computer and automatically perform installation, asynchronously.
+
+```
+$ istation ./app.ipa ./another-app.ipa
+```
+
+Pass `--deleting` for all subsequent IPA files to be deleted before they are installed (semi-experimental as the bundle ID is needed)
+
+Note: _Apple Configurator 2_ must be installed on the host computer.
+
 ## git-pr
 
 Exactly the same as `git pull`, except it opens the first URL in `git pull` output in your web browser.
