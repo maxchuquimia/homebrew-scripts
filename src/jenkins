@@ -1,0 +1,200 @@
+#!/bin/bash
+
+JENKINS_PROJECT=""
+JENKINS_USER=""
+
+JENKINSFILE=".jenkins"
+
+set -e
+
+
+f_help() {
+    echo "Usage: jenkins <command>"
+    echo "Commands:"
+    echo "    setup      Create a .jenkins file"
+    echo "    status     View status of recent builds"
+    echo "    build      Create a new build with parameters"
+    echo "    console    Attach to the console of the last build"
+    echo "    web        Visit Jenkins in your web browser"
+}
+
+f_set_password() {
+    security add-generic-password -a "$USER" -s "jenkins-script" -U -w
+}
+
+
+f_get_password() {
+    security find-generic-password -a "$USER" -s "jenkins-script" -w
+}
+
+f_prepare() {
+    user_wd="$(pwd)"
+    while [[ "$PWD" != "/" ]]
+    do
+        if test -f "$JENKINSFILE"; then
+            #echo "Using $PWD/$JENKINSFILE"
+            source "$JENKINSFILE"        
+            break
+        fi
+        cd ..
+    done
+    cd "$user_wd"
+
+
+    if [ -z "$JENKINS_USER" ]
+    then
+        >&2 echo "No user specified"
+        exit 2
+    fi
+
+    if [ -z "$JENKINS_PROJECT" ]
+    then
+        >&2 echo "No job specified"
+        exit 3
+    fi
+
+    export JENKINS_PASSWORD="$(f_get_password)"
+
+    if [ -z "$JENKINS_PASSWORD" ]
+    then
+        >&2 echo "No password for $JENKINS_USER found in the keychain"
+        exit 4
+    fi
+}
+
+f_setup() {
+    
+    if test -f "$JENKINSFILE"; then
+        >&2 echo "$JENKINSFILE already exists in this directory"
+        read -p "Press enter to overwrite it and continue"
+    fi
+
+    echo "Creating $JENKINSFILE"
+    read -p 'Job URL (with trailing /): ' job
+    read -p 'Username for Jenkins access: ' username
+    echo "Your password will be stored in the Keychain."
+    f_set_password
+    
+    echo "export JENKINS_PROJECT=\"$job\"" > "$JENKINSFILE"
+    echo "export JENKINS_USER=\"$username\"" >> "$JENKINSFILE"
+}
+
+f_status() {
+    job_info=$(curl -s "${JENKINS_PROJECT}api/json" -u "$JENKINS_USER:$JENKINS_PASSWORD")
+
+    echo "$job_info" | jq -r '.healthReport[0] | .description'
+
+    echo "$job_info" | jq -r '.builds[] | [.number, .url] | @tsv' |
+        while IFS=$'\t' read -r number url; do
+            build_result=$(curl -s "${url}api/json" | jq -r '.result')
+
+
+            if [ "$build_result" == "null" ]
+            then
+                $build_result = "(pending)"
+            fi
+
+            echo -en "#$number\t$build_result\n"
+            ((c++)) && ((c==5)) && break # Max number of loops
+        done
+}
+
+f_console() {
+    # Helpful headers:
+    # X-Text-Size
+    # X-More-Data
+
+    offset="0"
+    while true
+    do
+        headers="/tmp/jenkins-headers"
+
+        # curl -v outputs headers to stderr - save them in a file for later parsing
+        console_text=$(curl -s "${JENKINS_PROJECT}lastBuild/logText/progressiveText?start=$offset" -v -u "$JENKINS_USER:$JENKINS_PASSWORD" 2>"$headers")
+
+        if [ ! -z "$console_text" ] 
+        then
+            echo "$console_text"
+        fi
+
+        #cat "$headers"
+
+        more=$(cat "$headers" | grep 'X-More-Data' | sed -e 's/^.*: //g' | sed 's/[^a-z]*//g')
+        if [ "$more" != "true" ]
+        then
+            rm "$headers"
+            break
+        fi
+
+        offset=$(cat "$headers" | grep 'X-Text-Size' | sed -e 's/^.*: //g' | sed 's/[^0-9]*//g')
+        rm "$headers"
+        #echo "offset '$offset'"
+
+        sleep 5
+    done
+}
+
+f_build() {
+    params=$(curl -s "${JENKINS_PROJECT}config.xml" -u "$JENKINS_USER:$JENKINS_PASSWORD" | grep -A 1 '<hudson.model.StringParameterDefinition>' | sed -n 's/^.*<name>\(.*\)<\/name>.*$/\1/p')
+    body=""
+    while read -r p; do
+        read -p "$p: " var </dev/tty 
+        body="$body&$p=$var"
+    done <<< "$params"
+
+    # Remove first &
+    body="${body:1}"
+    build_output=$(curl -d "$body" -X POST "${JENKINS_PROJECT}buildWithParameters" -si -u "$JENKINS_USER:$JENKINS_PASSWORD")
+    build_url=$(echo "$build_output" | grep 'Location:' | sed -e 's/Location: //g')
+    echo "$build_url"
+}
+
+f_web() {
+    open "$JENKINS_PROJECT"
+}
+
+for i in "$@"
+do
+    case $i in
+        setup)
+            shift
+            f_setup
+            exit 0
+            ;;
+        status)
+            shift
+            f_prepare
+            f_status
+            exit 0
+            ;;
+        build)
+            shift
+            f_prepare
+            f_build
+            exit 0
+            ;;
+        help)
+            shift
+            f_help
+            exit 0
+            ;;
+        web)
+            shift
+            f_prepare
+            f_web
+            exit 0
+            ;;
+        console)
+            shift
+            f_prepare
+            f_console
+            exit 0
+            ;;
+        *)
+            >&2 echo "Unknown command"
+            f_help
+            exit 1
+            ;;
+    esac
+done
+
