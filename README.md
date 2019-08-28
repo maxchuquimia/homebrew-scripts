@@ -16,8 +16,8 @@ Note: _Apple Configurator 2_ must be installed on the host computer.
 
 ## git-pr
 
-Exactly the same as `git pull`, except it opens the first URL in `git pull` output in your web browser.
-Made for Bitbucket, because the remote responds with a URL that can be used to create a Merge Request (which they call Pull Request)
+Exactly the same as `git push`, except it opens the first URL in `git push` output in your web browser.
+Works with GitLab and Bitbucket because they respond to pushes with a URL that can be used to create a Merge Request (which Bitbucket calls Pull Request)
 
 ```sh
 $ git pr
