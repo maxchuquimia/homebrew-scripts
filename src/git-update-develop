@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# exclude untracked files (prefixed by ??)
+working_changes=$(git status -s | grep -v '??')
+
+set -e
+
+if [[ -n "$working_changes" ]]
+then
+    echo "Stashing changes"
+    git stash
+fi
+
+git checkout develop 
+
+git pull 
+
+git checkout - 
+
+if [[ -n "$working_changes" ]]
+then
+    echo "Popping stash"
+    git stash pop
+fi

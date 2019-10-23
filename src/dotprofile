@@ -1,0 +1,50 @@
+
+PROMPT_COMMAND=__prompt_command # Func to gen PS1 after CMDs
+export PS_TIME_DELTA_START=$(date +%s)
+
+__prompt_command() {
+    local EXIT="$?" # This needs to be first
+    PS1=""
+
+	TIME_NOW=$(date +%s)
+	SECONDS_SINCE_LAST_PROMPT=$((TIME_NOW - PS_TIME_DELTA_START))
+	TIME_SINCE_LAST_PROMPT=$(date -u -r $SECONDS_SINCE_LAST_PROMPT +%T)
+
+    #[/current/directory]
+    PS1+="\[\033[1;36m\][\w]"
+    
+    if [ $EXIT != 0 ]; then
+        PS1+="\[\033[0;31m\] Error: \[\033[1;31m\]$EXIT " # Add red if exit code non 0
+    else 
+        # Git
+        PS1+="\[\033[0;33m\] $(git branch 2>/dev/null | grep '^*' | colrm 1 2) "
+    fi
+
+    # Add a timestamp, because it can be useful to know when the prompt was printed
+	PS1+="\[\033[2;90m\]$(date "+%Y-%m-%d %H:%M:%S") (+$TIME_SINCE_LAST_PROMPT)"
+	
+    # Prompt on a new line
+    PS1+="\n\[\033[0;32m\]\$\[\033[0m\] "
+	
+	export PS_TIME_DELTA_START=$(date +%s)
+
+    # Set the title of Terminal to be the current directory 
+    echo -ne "\033]0;${PWD##*/}\007"
+}
+
+set -o vi
+
+export PATH="/opt/local/bin:/opt/local/sbin:/Users/$(whoami)/bin:$PATH"
+
+export CLICOLOR=1
+export LSCOLORS=DxGxcxdxCxegedabagacad
+
+alias symbolicate="/Applications/Xcode.app/Contents/SharedFrameworks/DTDeviceKitBase.framework/Versions/A/Resources/symbolicatecrash -v"
+
+if [ "x`ps ax |grep [s]sh-agent`" == "x" ]; then ssh-agent; fi
+
+export NODE_PATH=/usr/local/lib/node_modules
+
+export VISUAL=vim
+export EDITOR="$VISUAL"
+
