@@ -2,11 +2,15 @@
 
 XCWORKSPACE=$(find . -name *.xcworkspace)
 VERSION=$1
+APP="/Applications/Xcode${VERSION}.app"
 
-if [ -d "$XCWORKSPACE" ]
+if [ -f Package.swift ] 
 then
-    open -a "/Applications/Xcode${VERSION}.app" "$XCWORKSPACE"
+    open -a "$APP" Package.swift
+elif [ -d "$XCWORKSPACE" ]
+then
+    open -a "$APP" "$XCWORKSPACE"
 else
-    open -a "/Applications/Xcode${VERSION}.app" "$(find . -name *.xcodeproj)"
+    open -a "$APP" "$(find . -name *.xcodeproj)"
 fi
 

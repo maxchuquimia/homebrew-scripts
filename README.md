@@ -47,7 +47,7 @@ $ timeout <process> <minutes>
 Note: `process` can be a PID or a name - `ps -A` is grepped for a match
 
 ## xcode
-Opens the `.xcodeproj` or `.xcworkspace` in the current working directory. Optionally specify an Xcode version
+Opens either `Package.swift`, `*.xcworkspace` or `*.xcodeproj` if found in the current directory. Optionally specify an Xcode version
 
 ```sh
 $ xcode
