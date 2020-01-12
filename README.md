@@ -3,6 +3,16 @@ Just a collection of scripts I've made to make my life easier
 
 Install them with `brew install maxchuquimia/scripts/scriptname`
 
+## kill_sim_clones 
+
+Shutdown all Simulator clones that were created by Xcode when running tests 
+
+```sh
+$ kill_sim_clones
+```
+
+You can make Xcode run this automatically by editing _Xcode Preferences > Behaviours > Testing > Succeeds > Run_
+
 ## istation
 Given a list of IPA files, `istation` will wait for iOS devices to be plugged into the host computer and automatically perform installation, asynchronously.
 

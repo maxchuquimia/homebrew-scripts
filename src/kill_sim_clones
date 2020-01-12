@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#xcrun simctl --set testing list | grep Booted | grep Clone | sed 's/^.*(\([A-Z0-9\-]*\)).*$/\1/g' | xargs -I {} xcrun simctl --set testing shutdown "{}"
+
+xcrun simctl --set testing list | grep Booted | grep Clone | sed 's/^.*(\([A-Z0-9\-]*\)).*$/\1/g' | while read -r line; do
+    # add & to make all the shutting down happen in parallel
+    echo "Scheduling shutdown of $line"
+    xcrun simctl --set testing shutdown "$line" 2>&1 > /dev/null &
+done
+
