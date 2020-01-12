@@ -1,4 +1,4 @@
-class Kill_sim_clones < Formula
+class KillSimClones < Formula
   desc "Shutdown all Simulator clones created by Xcode when running tests "
   homepage ""
   url "https://raw.githubusercontent.com/maxchuquimia/homebrew-scripts/master/releases/kill_sim_clones-1.0.0.tar.gz"
