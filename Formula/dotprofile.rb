@@ -1,9 +1,9 @@
 class Dotprofile < Formula
   desc "My personal profile source"
   homepage ""
-  url "https://raw.githubusercontent.com/maxchuquimia/homebrew-scripts/master/releases/dotprofile-1.0.0.tar.gz"
-  sha256 "295dced2ffcf657f15bdf3737cd5eb10ed837a8ffe7980cf89ef5fb688525002"
-  version "1.0.0"
+  url "https://raw.githubusercontent.com/maxchuquimia/homebrew-scripts/master/releases/dotprofile-1.0.1.tar.gz"
+  sha256 "dd2dc29acf11f48db8778a465716a8265aa3c935e5b363e9876467581b0b6b5b"
+  version "1.0.1"
 
   def install
       bin.install "dotprofile"

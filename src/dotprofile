@@ -17,7 +17,7 @@ __prompt_command() {
         PS1+="\[\033[0;31m\] Error: \[\033[1;31m\]$EXIT " # Add red if exit code non 0
     else 
         # Git
-        PS1+="\[\033[0;33m\] $(git branch 2>/dev/null | grep '^*' | colrm 1 2) "
+        PS1+="\[\033[0;33m\] $(git branch 2>/dev/null | grep '^*' | colrm 1 2)$(git status 2>/dev/null | grep "cherry-picking commit" | sed 's/You are currently//g') "
     fi
 
     # Add a timestamp, because it can be useful to know when the prompt was printed
