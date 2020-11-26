@@ -1,0 +1,27 @@
+#!/bin/bash
+
+function usage() {
+    echo "Install a brew formula as it was defined in a specific homebrew/core commit. Will uninstall existing version if required."
+    echo "Usage: rebrew <formula> <sha>"
+    echo "e.g. rebrew swiftgen 1b8780f95c6d75723009540dd65a1ae4359713a5"
+}
+
+FORMULA=$1
+HASH=$2
+
+set -e
+
+if [[ -z "$HASH" || -z "$FORMULA" ]]
+then
+    usage
+    exit 1
+fi
+
+if command -v "$FORMULA" > /dev/null
+then
+    echo "Uninstalling existing version of $FORMULA"
+    brew uninstall "$FORMULA"
+fi
+
+curl "https://raw.githubusercontent.com/Homebrew/homebrew-core/$HASH/Formula/$FORMULA.rb" > "/tmp/$FORMULA.rb"
+brew install "/tmp/$FORMULA.rb"

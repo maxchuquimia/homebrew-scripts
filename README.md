@@ -70,3 +70,14 @@ $ xcode 10.2.1
 ```
 
 Note: `Xcode.app` should exist in `/Applications` already. If you are optionally specifying a version, that version should exist too (e.g. `Xcode10.2.1.app`)
+
+## rebrew
+
+Install a brew formula as it was defined in a specific homebrew/core commit. Will uninstall existing version if required.
+
+```sh
+rebrew <formula> <sha>
+```
+e.g. `rebrew swiftgen 1b8780f95c6d75723009540dd65a1ae4359713a5`
+
+It's a bit brutal, but helpful for CI and keeping the team in sync.
