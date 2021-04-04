@@ -9,8 +9,11 @@ class Xcgrapher < Formula
   depends_on "graphviz"
 
   def install
-    system "make", "install", "prefix=#{prefix}"
+    systemm "swift", "build", "-c", "release", "--disable-sandbox"
+    bin.install ".build/release/xcgrapher"
+    puts "[!]"
     puts "[!] You *may* still need to install 'xcodeproj': try 'gem install xcodeproj' or visit https://github.com/CocoaPods/Xcodeproj"
+    puts "[!]"
   end
 
 end
