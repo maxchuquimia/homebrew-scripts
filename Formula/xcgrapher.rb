@@ -2,7 +2,7 @@ class Xcgrapher < Formula
   desc "Framework-level dependency graph generator for Xcode projects "
   homepage "https://github.com/maxchuquimia/xcgrapher"
   url "https://github.com/maxchuquimia/xcgrapher.git",
-      :tag => "0.0.9", :revision => "d5b410f1f42bb95ce51453da539834d3678d85a4"
+      :tag => "0.0.10", :revision => "fa36ffcb7a63d09160d59c21225d93ca19fe36b6"
   head "https://github.com/maxchuquimia/xcgrapher.git"
 
   depends_on :xcode => ["12.4", :build]
