@@ -7,8 +7,6 @@ class GitPr < Formula
 
   depends_on "git"
 
-  bottle :unneeded
-
   def install
     bin.install "git-pr"
   end

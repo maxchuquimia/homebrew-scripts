@@ -5,8 +5,6 @@ class Timeout < Formula
   sha256 "e7d64c312fe944c175d2e640742da35e213259bbb6fc4a2db07d218f42a1045e"
   version "1.0.0"
 
-  bottle :unneeded
-
   def install
       bin.install "timeout"
   end
