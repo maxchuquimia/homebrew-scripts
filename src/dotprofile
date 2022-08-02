@@ -1,4 +1,14 @@
 
+OLDPWD_CACHE_LOCATION="$HOME/.dotprofile_oldpwd"
+
+# When a new terminal is opened, restore the previous working directory
+if [ -z "$OLDPWD" ] && [ -f "$OLDPWD_CACHE_LOCATION" ]
+then
+    LOC="$(cat "$OLDPWD_CACHE_LOCATION")"
+    echo "Restoring working directory to: $LOC"
+    cd "$LOC"
+fi
+
 PROMPT_COMMAND=__prompt_command # Func to gen PS1 after CMDs
 export PS_TIME_DELTA_START=$(date +%s)
 
@@ -30,6 +40,9 @@ __prompt_command() {
 
     # Set the title of Terminal to be the current directory 
     echo -ne "\033]0;${PWD##*/}\007"
+
+    # Save the current working directory for restoration
+    pwd > "$OLDPWD_CACHE_LOCATION"
 }
 
 set -o vi
@@ -40,6 +53,8 @@ export CLICOLOR=1
 export LSCOLORS=DxGxcxdxCxegedabagacad
 
 alias symbolicate="/Applications/Xcode.app/Contents/SharedFrameworks/DTDeviceKitBase.framework/Versions/A/Resources/symbolicatecrash -v"
+alias s='git status'
+alias vscode='open . -a /Applications/Visual\ Studio\ Code.app'
 
 if [ "x`ps ax |grep [s]sh-agent`" == "x" ]; then ssh-agent; fi
 
