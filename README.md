@@ -19,7 +19,7 @@ Note: `stderr` gets mapped to `stdout`
 Search for the name of a color in an Xcode .colorset bundle using the color's hex code.
 
 ```sh
-colorset [hexcode]
+$ colorset [hexcode]
 ```
 
 Note: searches all .colorset bundles in or below the current directory.
