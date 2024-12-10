@@ -3,9 +3,30 @@ Just a collection of scripts I've made to make my life easier
 
 Install them with `brew install maxchuquimia/scripts/scriptname`
 
-## kill_sim_clones 
+## git-pr
 
-Shutdown all Simulator clones that were created by Xcode when running tests 
+Exactly the same as `git push`, except it opens the first URL in `git push` output in your web browser.
+Works with GitLab and Bitbucket because they respond to pushes with a URL that can be used to create a Merge Request (which Bitbucket calls Pull Request)
+
+```sh
+$ git pr
+```
+
+Note: `stderr` gets mapped to `stdout`
+
+## colorset
+
+Search for the name of a color in an Xcode .colorset bundle using the color's hex code.
+
+```sh
+colorset [hexcode]
+```
+
+Note: searches all .colorset bundles in or below the current directory.
+
+## kill_sim_clones
+
+Shutdown all Simulator clones that were created by Xcode when running tests
 
 ```sh
 $ kill_sim_clones
@@ -23,18 +44,6 @@ $ istation ./app.ipa ./another-app.ipa
 Pass `--deleting` for all subsequent IPA files to be deleted before they are installed (semi-experimental as the bundle ID is needed)
 
 Note: _Apple Configurator 2_ must be installed on the host computer.
-
-## git-pr
-
-Exactly the same as `git push`, except it opens the first URL in `git push` output in your web browser.
-Works with GitLab and Bitbucket because they respond to pushes with a URL that can be used to create a Merge Request (which Bitbucket calls Pull Request)
-
-```sh
-$ git pr
-```
-
-Note: `stderr` gets mapped to `stdout`
-
 
 ## checkout
 

@@ -1,0 +1,132 @@
+#!/bin/bash
+
+SEARCH_TERM=$1
+
+# Check for help flag
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    echo "Usage: $(basename "$0") [SEARCH_TERM]"
+    echo ""
+    echo "Parse and display color values from all .colorset files below the current directory"
+    echo ""
+    echo "Arguments:"
+    echo "  SEARCH_TERM    Color names or codes matching this term will be highlighted (optional)"
+    exit 0
+fi
+
+# ANSI color codes
+GREEN_BG_BLACK='\033[42;30m'
+NC='\033[0m' # No Color
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "Error: jq is not installed. Please install jq to use this script."
+    exit 1
+fi
+
+# Function to convert decimal to hex
+dec_to_hex() {
+    printf "%02X" "$1"
+}
+
+# Function to convert hex to decimal
+hex_to_dec() {
+    echo $((16#$1))
+}
+
+# Function to convert float to 8-bit integer
+float_to_int() {
+    echo "scale=0; $1 * 255 / 1" | bc
+}
+
+# Function to process color components and print in all formats
+process_color() {
+    local name=$1
+    local red=$2
+    local green=$3
+    local blue=$4
+    local alpha=$5
+
+    # Determine the input format and convert to all formats
+    if [[ $red == *"0x"* ]]; then
+        # Input is hex
+        red_dec=$(hex_to_dec "${red#0x}")
+        green_dec=$(hex_to_dec "${green#0x}")
+        blue_dec=$(hex_to_dec "${blue#0x}")
+
+        red_float=$(echo "scale=3; $red_dec / 255" | bc)
+        green_float=$(echo "scale=3; $green_dec / 255" | bc)
+        blue_float=$(echo "scale=3; $blue_dec / 255" | bc)
+
+        hex_str="#${red#0x}${green#0x}${blue#0x}"
+    elif [[ $red == *"."* ]]; then
+        # Input is float
+        red_dec=$(float_to_int "$red")
+        green_dec=$(float_to_int "$green")
+        blue_dec=$(float_to_int "$blue")
+
+        red_float=$red
+        green_float=$green
+        blue_float=$blue
+
+        red_hex=$(dec_to_hex "$red_dec")
+        green_hex=$(dec_to_hex "$green_dec")
+        blue_hex=$(dec_to_hex "$blue_dec")
+        hex_str="#$red_hex$green_hex$blue_hex"
+    else
+        # Input is decimal
+        red_dec=$red
+        green_dec=$green
+        blue_dec=$blue
+
+        red_hex=$(dec_to_hex "$red_dec")
+        green_hex=$(dec_to_hex "$green_dec")
+        blue_hex=$(dec_to_hex "$blue_dec")
+        hex_str="#$red_hex$green_hex$blue_hex"
+    fi
+
+    # Format the line
+    local formatted_line=$(printf "%-40s │ %-7s │ %-18s │ %s" \
+        "$name" \
+        "$hex_str" \
+        "rgb($red_dec, $green_dec, $blue_dec)" \
+        "$alpha")
+
+    # If search term is provided and matches, highlight the line
+    local search_term_lower=$(echo "$SEARCH_TERM" | tr '[:upper:]' '[:lower:]')
+    local line_lower=$(echo "$formatted_line" | tr '[:upper:]' '[:lower:]')
+    if [[ -n "$SEARCH_TERM" ]] && echo "$line_lower" | grep -q "$search_term_lower"; then
+        printf "${GREEN_BG_BLACK}%s${NC}\n" "$formatted_line"
+    else
+        printf "%s\n" "$formatted_line"
+    fi
+}
+
+# Function to process a colorset file
+process_colorset() {
+    local file=$1
+
+    # Extract color name from directory name
+    local name=$(basename "$(dirname "$file")" .colorset)
+
+    # Read color components from JSON
+    local red=$(jq -r '.colors[0].color.components.red' "$file")
+    local green=$(jq -r '.colors[0].color.components.green' "$file")
+    local blue=$(jq -r '.colors[0].color.components.blue' "$file")
+    local alpha=$(jq -r '.colors[0].color.components.alpha' "$file")
+
+    # Check if any color component failed to parse
+    if [[ -z "$red" || -z "$green" || -z "$blue" || "$red" == "null" || "$green" == "null" || "$blue" == "null" ]]; then
+        echo "Error parsing color components in file: $file" >&2
+        return 1
+    fi
+
+    process_color "$name" "$red" "$green" "$blue" "$alpha"
+}
+
+# Add header before processing files
+printf "%-40s │ %-7s │ %-18s │ %s\n" "COLOR NAME" "HEX" "RGB" "ALPHA"
+printf "%s\n" "$(printf '%.0s─' {1..79})"
+
+find . -name "Contents.json" -path "*.colorset/*" | while read -r file; do
+    process_colorset "$file"
+done
